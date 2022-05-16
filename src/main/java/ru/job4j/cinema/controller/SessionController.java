@@ -14,6 +14,8 @@ import ru.job4j.cinema.service.SessionService;
 import javax.servlet.http.HttpSession;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 @Controller
 @SessionAttributes({"currentSession", "seats", "row", "cell"})
@@ -45,9 +47,12 @@ public class SessionController {
 
     @PostMapping("/selectSession")
     public String selectSession(@RequestParam(value = "sessionId") int sessionId, ModelMap model) {
-        Session currentSession = sessionService.findSessionById(sessionId);
-        model.put("currentSession", currentSession);
-        Map<Integer, List<Integer>> seatsForSession = sessionService.calcFreeSeatsForSession(currentSession);
+        Optional<Session> currentSession = sessionService.findSessionById(sessionId);
+        if (currentSession.isEmpty()) {
+            return "redirect:/index";
+        }
+        model.put("currentSession", currentSession.get());
+        Map<Integer, List<Integer>> seatsForSession = sessionService.calcFreeSeatsForSession(currentSession.get());
         model.put("seats", seatsForSession);
         return "selectRow";
     }
@@ -60,12 +65,21 @@ public class SessionController {
 
     @PostMapping("/purchaseResult")
     public String purchaseResult(@RequestParam("cell") int cell, ModelMap model, HttpSession httpSession) {
+        if (httpSession.getAttribute("user") == null) {
+            return "redirect:/accessDenied";
+        }
         User user = (User) httpSession.getAttribute("user");
         model.addAttribute("user", user);
         model.put("cell", cell);
-        Session session = (Session) model.getAttribute("currentSession");
+        Session session = Objects.requireNonNull((Session) model.getAttribute("currentSession"));
         boolean result = sessionService.buyTicket(session.getId(), (int) model.get("row"), (int) model.get("cell"), user.getId());
         model.addAttribute("ticketPurchaseResult", result);
         return "purchaseResult";
+    }
+
+    @GetMapping("/accessDenied")
+    public String fail(Model model) {
+        model.addAttribute("message", "Недостаточно прав пользователя.");
+        return "fail";
     }
 }

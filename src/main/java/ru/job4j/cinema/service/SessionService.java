@@ -8,6 +8,7 @@ import ru.job4j.cinema.store.SessionStore;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -44,15 +45,16 @@ public class SessionService {
         return store.findAllSessions();
     }
 
-    public Session findSessionById(int sessionId) {
+    public Optional<Session> findSessionById(int sessionId) {
         return store.findSessionById(sessionId);
     }
 
     public boolean buyTicket(int sessionId, int row, int cell, int userId) {
         boolean result = false;
         if (store.checkTicketForSession(sessionId, row, cell)) {
-            store.buyTicket(sessionId, row, cell, userId);
-            result = true;
+            if (store.buyTicket(sessionId, row, cell, userId).isPresent()) {
+                result = true;
+            }
         }
         return result;
     }

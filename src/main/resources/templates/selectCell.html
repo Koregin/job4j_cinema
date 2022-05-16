@@ -38,6 +38,12 @@
                 <td th:text="${currentSession.getName()}"></td>
                 <td th:text="${row}"></td>
                 <td>
+                    <span th:if="${seats[__${row}__].size() == 0}">Нет свободных мест
+                    <form th:action="@{/index}" method="GET">
+                        <button type="submit" class="btn btn-primary">Выбрать другой ряд</button>
+                    </form>
+                    </span>
+                    <span th:unless="${seats[__${row}__].size() == 0}">
                     <form th:action="@{/purchaseResult}" method="POST">
                         <div class="form-group">
                             <label for="cell">Выбрать место</label>
@@ -50,6 +56,7 @@
                         </div>
                         <button type="submit" class="btn btn-primary">Купить билет</button>
                     </form>
+                    </span>
                 </td>
             </tr>
             </tbody>

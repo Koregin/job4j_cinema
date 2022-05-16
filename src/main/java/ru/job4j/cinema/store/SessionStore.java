@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class SessionStore {
@@ -53,7 +54,7 @@ public class SessionStore {
         return tickets;
     }
 
-    public Session findSessionById(int sessionId) {
+    public Optional<Session> findSessionById(int sessionId) {
         Session session = new Session();
         try (Connection cn = pool.getConnection();
              PreparedStatement ps = cn.prepareStatement("SELECT * FROM sessions WHERE id = ?")
@@ -66,12 +67,12 @@ public class SessionStore {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            return Optional.empty();
         }
-        return session;
+        return Optional.of(session);
     }
 
-    public Ticket buyTicket(int sessionId, int row, int cell, int userId) {
+    public Optional<Ticket> buyTicket(int sessionId, int row, int cell, int userId) {
         Ticket ticket = new Ticket(0, row, cell);
         try (Connection cn = pool.getConnection();
              PreparedStatement ps = cn.prepareStatement("INSERT INTO ticket(session_id, line, cell, user_id) VALUES (?, ?, ?, ?)",
@@ -88,9 +89,9 @@ public class SessionStore {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            Optional.empty();
         }
-        return ticket;
+        return Optional.of(ticket);
     }
 
     public boolean checkTicketForSession(int sessionId, int row, int cell) {
